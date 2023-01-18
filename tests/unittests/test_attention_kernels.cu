@@ -21,6 +21,7 @@
 #include "src/fastertransformer/utils/memory_utils.h"
 #include "src/fastertransformer/utils/nccl_utils.h"
 #include "src/fastertransformer/utils/Tensor.h"
+#include "src/fastertransformer/utils/cuda_utils.h"
 
 #include <curand.h>
 #include <sstream>
@@ -340,10 +341,11 @@ public:
         bool use_fp32_qk = param.use_fp32_qk_buf && dtype != TYPE_FP32;
 
         Tensor qk           = createTensor(MEMORY_GPU, dtype, qk_shape);
+        // printMatrix(qk.getPtr<T>(), param.q_length, param.k_length, 1, true);
         Tensor qk_fp32      = use_fp32_qk ? createTensor(MEMORY_GPU, TYPE_FP32, qk_shape) : Tensor();
         Tensor attn_mask    = randomAttentionMask({param.batch_size, 1, param.q_length, param.k_length});
         Tensor alibi_slopes = createTensor(MEMORY_GPU, dtype, {param.head_num});
-
+        // printMatrix(attn_mask.getPtr<T>(), param.q_length, param.k_length, 1, true);
         // Input random initialization
         if (param.use_fp32_qk_buf && dtype != TYPE_FP32) {
             utils::normal<float>(curng, qk_fp32);
@@ -352,6 +354,7 @@ public:
             utils::normal<T>(curng, qk);
         }
         invokeBuildAlibiSlopes(alibi_slopes.getPtr<T>(), param.head_num, stream);
+        // printMatrix(alibi_slopes.getPtr<T>(), 1, param.head_num, 1, true);
         sync_check_cuda_error();
 
         Tensor h_alibi_slopes = createTensor(MEMORY_CPU, dtype, {param.head_num});
@@ -368,11 +371,15 @@ public:
                 for (size_t qi = 0; qi < param.q_length; ++qi) {
                     for (size_t ki = 0; ki < param.k_length; ++ki) {
                         size_t hqk_idx = (h * param.q_length + qi) * param.k_length + ki;
-                        alibi_bias_ptr[hqk_idx] = ::math::mul(alibi_slope_ptr[h], T(0.0f + ki - qi));
+                        T pos = (0.0f + (ki - qi >= 0 ? -(ki - qi) : ki - qi));
+                        alibi_bias_ptr[hqk_idx] = ::math::mul(alibi_slope_ptr[h], pos);
                     }
                 }
             }
         }
+
+        // printMatrix(h_alibi_bias.getPtr<T>(), param.q_length, param.k_length, 1, false);
+        //printMatrix(h_alibi_slopes.getPtr<T>(), 1, param.head_num, 1, false);
         EXPECT_TRUE(
             checkResult("CheckAlibiSlopes", alibi_slopes.getPtr<T>(), h_alibi_slopes.getPtr<T>(), param.head_num));
 
@@ -380,6 +387,9 @@ public:
         Tensor h_qk        = is_benchmark ? Tensor() : toHost(qk);
         Tensor h_attn_mask = is_benchmark ? Tensor() : toHost(attn_mask);
         Tensor h_qk_fp32   = is_benchmark ? Tensor() : toHost(qk_fp32);
+
+        //printMatrix(h_qk.getPtr<T>(), param.q_length, param.k_length, 1, false);
+        //printMatrix(h_attn_mask.getPtr<T>(), param.q_length, param.k_length, 1, false);
 
         T scale = static_cast<T>(1 / sqrtf(param.size_per_head * 1.0f));
 

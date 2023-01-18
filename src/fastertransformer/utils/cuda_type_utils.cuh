@@ -163,6 +163,42 @@ inline __device__ __nv_bfloat162 hmul2(__nv_bfloat162 a, __nv_bfloat162 b) {
 #endif // ENABLE_BF16
 
 template<typename T>
+inline __device__ bool hbge2(T a, T b) {
+    return __hbge2(a, b);
+}
+
+#if ENABLE_BF16
+template<>
+inline __device__ bool hbge2(__nv_bfloat162 a, __nv_bfloat162 b) {
+    return bf16hbge2(a, b);
+}
+#endif // ENABLE_BF16
+
+template<typename T>
+inline __device__ T hneg2(T a) {
+    return __hneg2(a);
+}
+
+#if ENABLE_BF16
+template<>
+inline __device__ __nv_bfloat162 hneg2(__nv_bfloat162 a) {
+    return bf16hneg2(a);
+}
+#endif // ENABLE_BF16
+
+template<typename T>
+inline __device__ T habs2(T a) {
+    return __habs2(a);
+}
+
+#if ENABLE_BF16
+template<>
+inline __device__ __nv_bfloat162 habs2(__nv_bfloat162 a) {
+    return bf16habs2(a);
+}
+#endif // ENABLE_BF16
+
+template<typename T>
 inline __device__ T hmul2(T a, T b, T c) {
     return a * b * c;
 }

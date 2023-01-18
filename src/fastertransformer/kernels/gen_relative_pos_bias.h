@@ -27,6 +27,7 @@ namespace fastertransformer {
 enum class PositionEmbeddingType {
     relative,
     absolute,
+    linear
 };
 
 template<typename T, typename Tindex>

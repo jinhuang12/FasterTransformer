@@ -89,6 +89,8 @@ void T5Decoding<T>::allocateBuffer(
     }
     relative_attention_bias_ = (T*)(allocator_->reMalloc(
         relative_attention_bias_, sizeof(T) * head_num_ * (max_seq_len + 1) * (max_seq_len + 1), false));
+    linear_bias_slopes_ = (T*)(allocator_->reMalloc(
+    linear_bias_slopes_, sizeof(T) * head_num_ * (max_seq_len + 1) * (max_seq_len + 1), false));
 
     decoder_input_buf_  = (T*)(allocator_->reMalloc(decoder_input_buf_, sizeof(T) * batchxbeam * d_model_, false));
     decoder_output_buf_ = (T*)(allocator_->reMalloc(decoder_output_buf_, sizeof(T) * batchxbeam * d_model_, false));
@@ -165,6 +167,7 @@ void T5Decoding<T>::freeBuffer()
         }
 
         allocator_->free((void**)(&relative_attention_bias_));
+        allocator_->free((void**)(&linear_bias_slopes_));
 
         allocator_->free((void**)(&decoder_input_buf_));
         allocator_->free((void**)(&decoder_output_buf_));
@@ -474,15 +477,20 @@ void T5Decoding<T>::forward(TensorMap*                 output_tensors,
                              stream_);
     sync_check_cuda_error();
 
-    invokeBuildRelativeAttentionBias(relative_attention_bias_,
-                                     decoding_weights->absolute_or_relative_position_embedding,
-                                     head_num_,
-                                     (max_seq_len + 1),
-                                     num_bucket_,
-                                     false,
-                                     max_distance_,
-                                     decoding_weights->position_embedding_type,
-                                     stream_);
+    if (decoding_weights->position_embedding_type == PositionEmbeddingType::linear) {
+        invokeBuildAlibiSlopes(linear_bias_slopes_, head_num_, stream_);
+    } else {
+        invokeBuildRelativeAttentionBias(relative_attention_bias_,
+                                         decoding_weights->absolute_or_relative_position_embedding,
+                                         head_num_,
+                                         (max_seq_len + 1),
+                                         num_bucket_,
+                                         false,
+                                         max_distance_,
+                                         decoding_weights->position_embedding_type,
+                                         stream_);
+    }
+
     sync_check_cuda_error();
 
     if (vocab_size_ == vocab_size_padded_) {
@@ -574,7 +582,7 @@ void T5Decoding<T>::forward(TensorMap*                 output_tensors,
                 Tensor{MEMORY_GPU,
                        data_type,
                        {1, head_num_, max_seq_len + 1, max_seq_len + 1},
-                       decoding_weights->position_embedding_type == PositionEmbeddingType::relative ?
+                       decoding_weights->position_embedding_type == PositionEmbeddingType::linear ? linear_bias_slopes_ : decoding_weights->position_embedding_type == PositionEmbeddingType::relative ?
                            relative_attention_bias_ :
                            nullptr},
                 Tensor{MEMORY_CPU, TYPE_UINT32, {1}, &ite},

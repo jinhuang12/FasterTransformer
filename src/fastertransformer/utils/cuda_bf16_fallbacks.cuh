@@ -25,7 +25,7 @@ namespace fastertransformer {
 inline __device__ float2 bf1622float2(const __nv_bfloat162 val) {
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ < 800
     float2 f_val;
-    f_val.x = __low2float(val); 
+    f_val.x = __low2float(val);
     f_val.y = __high2float(val);
     return f_val;
 #else
@@ -129,7 +129,7 @@ inline __device__ __nv_bfloat162 bf16hmul2(const __nv_bfloat162 x, const __nv_bf
 inline __device__ __nv_bfloat16 bf16hmul(const __nv_bfloat16 x, const __nv_bfloat16 y) {
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ < 800
     return __float2bfloat16( __bfloat162float(x) * __bfloat162float(y) );
-#else 
+#else
     return __hmul(x, y);
 #endif
 }
@@ -247,6 +247,43 @@ inline __device__ __nv_bfloat162 bf16hfma2(__nv_bfloat162 a, __nv_bfloat162 b, _
     return __floats2bfloat162_rn(fal * fbl * fcl + fdl, fah * fbh * fch + fdh);
 #else
     return a * b * c + d;
+#endif
+}
+
+inline __device__ bool bf16hbge2(__nv_bfloat162 a, __nv_bfloat162 b) {
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ < 800
+    float fal, fah, fbl, fbh;
+    fal = __low2float(a);
+    fah = __high2float(a);
+    fbl = __low2float(b);
+    fbh = __high2float(b);
+    return fah > fbh && fal > fbl;
+#else
+    return a >= b; //__hbgt2(a, b);
+#endif
+}
+
+inline __device__ __nv_bfloat162 bf16habs2(__nv_bfloat162 a) {
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ < 800
+    float fal, fah;
+    fal = __low2float(a);
+    fah = __high2float(a);
+    fal = fal < 0.0f ? -fal : fal;
+    fah = fah < 0.0f ? -fah : fah;
+    return __floats2bfloat162_rn(fal, fah);
+#else
+    return __habs2(a);
+#endif
+}
+
+inline __device__ __nv_bfloat162 bf16hneg2(__nv_bfloat162 a) {
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ < 800
+    float fal, fah;
+    fal = __low2float(a);
+    fah = __high2float(a);
+    return __floats2bfloat162_rn(-fal, -fah);
+#else
+    return -a; //__hneg2(a);
 #endif
 }
 

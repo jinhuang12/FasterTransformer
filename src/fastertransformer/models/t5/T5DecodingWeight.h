@@ -43,7 +43,7 @@ struct T5DecodingWeight {
                      const size_t                pipeline_para_rank,
                      const bool                  t5_with_bias_para            = false,
                      const bool                  use_gated_activation_para    = false,
-                     const PositionEmbeddingType position_embedding_type_para = PositionEmbeddingType::relative,
+                     const PositionEmbeddingType position_embedding_type_para = PositionEmbeddingType::linear,
                      const size_t                num_ia3_tasks                = false);
     ~T5DecodingWeight();
     T5DecodingWeight(const T5DecodingWeight& other);
@@ -51,13 +51,13 @@ struct T5DecodingWeight {
 
     std::vector<T5DecoderLayerWeight<T>*> decoder_layer_weights;
     const T*                              pre_decoder_embedding_table             = nullptr;
-    const T*                              absolute_or_relative_position_embedding = nullptr;
+    const T* absolute_or_relative_position_embedding = nullptr;
     LayerNormWeight<T>                    post_decoder_layernorm;
     DenseWeight<T>                        post_decoder_embedding;
     bool                                  t5_with_bias         = false;
     bool                                  use_gated_activation = false;
     // 0 = relative_position_embedding,  1 = absolute_position_embedding
-    PositionEmbeddingType position_embedding_type = PositionEmbeddingType::relative;
+    PositionEmbeddingType position_embedding_type = PositionEmbeddingType::linear;
 
     void loadModel(std::string dir_path);
     void resizeLayer(const int num_layer);

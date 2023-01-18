@@ -97,6 +97,7 @@ protected:
     T*       padded_post_decoder_embedding_bias_     = nullptr;
     const T* padded_post_decoder_embedding_bias_ptr_ = nullptr;
     T*       relative_attention_bias_                = nullptr;
+    T*       linear_bias_slopes_                     = nullptr;
 
     T*                 decoder_input_buf_         = nullptr;
     T*                 decoder_output_buf_        = nullptr;

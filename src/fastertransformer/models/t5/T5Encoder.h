@@ -90,6 +90,7 @@ protected:
     int*    trt_mha_padding_offset_  = nullptr;
     T*      attention_mask_          = nullptr;
     T*      relative_attention_bias_ = nullptr;
+    T*      linear_bias_slopes_      = nullptr;
     T*      t5_encoder_emb_buf_      = nullptr;
     T*      t5_encoder_in_buffer_    = nullptr;
     T*      attn_out_buf_            = nullptr;

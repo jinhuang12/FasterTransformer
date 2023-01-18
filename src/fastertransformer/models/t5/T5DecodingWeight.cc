@@ -88,7 +88,7 @@ void T5DecodingWeight<T>::initialize()
 {
     FT_LOG_DEBUG("T5DecodingWeight " + std::string(__func__) + " start");
     weights_size[0] = d_model_ * vocab_size_;
-    if (position_embedding_type == PositionEmbeddingType::absolute) {
+    if (position_embedding_type == PositionEmbeddingType::absolute || position_embedding_type == PositionEmbeddingType::linear) {
         weights_size[1] = num_bucket_or_max_seq_len_ * d_model_;
     }
     else {
@@ -228,7 +228,7 @@ void T5DecodingWeight<T>::loadModel(std::string dir_path)
     FtCudaDataType model_file_type = getModelFileType(dir_path + "/config.ini", "decoder");
 
     loadWeightFromBin<T>(weights_ptr[0], {(size_t)weights_size[0]}, dir_path + "/shared.weight_T.bin", model_file_type);
-    if (position_embedding_type == PositionEmbeddingType::absolute) {
+    if (position_embedding_type == PositionEmbeddingType::absolute || position_embedding_type == PositionEmbeddingType::linear) {
         loadWeightFromBin<T>(weights_ptr[1], {(size_t)weights_size[1]}, dir_path + "/shared.ape.bin", model_file_type);
     }
     else {

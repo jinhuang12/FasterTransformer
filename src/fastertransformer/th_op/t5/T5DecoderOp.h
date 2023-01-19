@@ -194,9 +194,7 @@ public:
         }
 
         // NeMo Megatron T5 with bias and use gelu or geglu.
-        ft::ActivationType activation_type =
-            _t5_with_bias ? (_use_gated_activation ? ft::ActivationType::GeGLU : ft::ActivationType::Gelu) :
-                            ft::ActivationType::Relu;
+        ft::ActivationType activation_type = _use_gated_activation ? ft::ActivationType::GeGLU : ft::ActivationType::Gelu;
 
         ft::T5Decoder<T> decoder = ft::T5Decoder<T>(batch_size,
                                                     _head_num,

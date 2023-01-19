@@ -168,7 +168,7 @@ public:
             }
         }
         t5_encoder_weights.post_transformer_layernorm_weights.gamma = get_ptr<T>(_weights[9]);
-        t5_encoder_weights.absolute_or_relative_position_embedding  = get_ptr<T>(_weights[10]);
+        // t5_encoder_weights.absolute_or_relative_position_embedding  = get_ptr<T>(_weights[10]);
         t5_encoder_weights.embedding_table                          = get_ptr<T>(_weights[11]);
         if (_t5_with_bias) {
             t5_encoder_weights.post_transformer_layernorm_weights.beta = get_ptr<T>(_weights[21]);

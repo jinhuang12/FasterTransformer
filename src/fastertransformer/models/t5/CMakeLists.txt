@@ -19,7 +19,8 @@ set_property(TARGET T5Decoder PROPERTY POSITION_INDEPENDENT_CODE  ON)
 set_property(TARGET T5Decoder PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS  ON)
 target_link_libraries(T5Decoder PUBLIC -lcudart cublasMMWrapper TensorParallelDecoderSelfAttentionLayer
                     TensorParallelDecoderCrossAttentionLayer TensorParallelReluFfnLayer TensorParallelSiluFfnLayer
-                    layernorm_kernels add_residual_kernels nccl_utils memory_utils tensor cuda_utils logger)
+                    layernorm_kernels add_residual_kernels nccl_utils memory_utils tensor cuda_utils logger
+                    gen_relative_pos_bias)
 
 add_library(T5Decoding STATIC T5Decoding.cc T5DecodingWeight.cc)
 set_property(TARGET T5Decoding PROPERTY POSITION_INDEPENDENT_CODE  ON)
@@ -34,7 +35,7 @@ set_property(TARGET T5Encoder PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS  ON)
 target_link_libraries(T5Encoder PUBLIC -lcudart bert_preprocess_kernels cublasMMWrapper 
                         TensorParallelUnfusedAttentionLayer FusedAttentionLayer TensorParallelReluFfnLayer
                         TensorParallelGeluFfnLayer TensorParallelSiluFfnLayer layernorm_kernels add_residual_kernels
-                        nccl_utils tensor cuda_utils logger)
+                        gen_relative_pos_bias nccl_utils tensor cuda_utils logger)
 
 add_executable(t5_gemm t5_gemm.cc)
 target_link_libraries(t5_gemm PUBLIC -lcudart t5_gemm_func memory_utils cuda_utils logger)

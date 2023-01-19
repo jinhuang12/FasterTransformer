@@ -188,7 +188,7 @@ public:
         decoding_weights.post_decoder_layernorm.gamma            = get_ptr<T>(_weights[12]);
         decoding_weights.pre_decoder_embedding_table             = get_ptr<T>(_weights[13]);
         decoding_weights.post_decoder_embedding.kernel           = get_ptr<T>(_weights[14]);
-        decoding_weights.absolute_or_relative_position_embedding = get_ptr<T>(_weights[15]);
+        // decoding_weights.absolute_or_relative_position_embedding = get_ptr<T>(_weights[15]);
         if (t5_with_bias_) {
             decoding_weights.post_decoder_layernorm.beta = get_ptr<T>(_weights[28]);
             decoding_weights.post_decoder_embedding.bias = get_ptr<T>(_weights[29]);

@@ -16,6 +16,7 @@
 
 #include "src/fastertransformer/models/t5/T5Encoder.h"
 #include "src/fastertransformer/kernels/add_residual_kernels.h"
+#include "src/fastertransformer/kernels/gen_relative_pos_bias.h"
 #include "src/fastertransformer/kernels/decoding_kernels.h"
 #include "src/fastertransformer/utils/Tensor.h"
 

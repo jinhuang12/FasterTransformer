@@ -241,8 +241,7 @@ T5Decoder<T>::T5Decoder(size_t                              max_batch_size,
     activation_type_(activation_type),
     q_scaling_(q_scaling),
     custom_all_reduce_comm_(custom_all_reduce_comm),
-    enable_custom_all_reduce_(enable_custom_all_reduce),
-    position_embedding_type_para_
+    enable_custom_all_reduce_(enable_custom_all_reduce)
 {
     initialize();
 }

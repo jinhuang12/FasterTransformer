@@ -228,10 +228,10 @@ void T5DecodingWeight<T>::loadModel(std::string dir_path)
     FtCudaDataType model_file_type = getModelFileType(dir_path + "/config.ini", "decoder");
 
     loadWeightFromBin<T>(weights_ptr[0], {(size_t)weights_size[0]}, dir_path + "/shared.weight_T.bin", model_file_type);
-    if (position_embedding_type == PositionEmbeddingType::absolute || position_embedding_type == PositionEmbeddingType::linear) {
+    if (position_embedding_type == PositionEmbeddingType::absolute) {
         loadWeightFromBin<T>(weights_ptr[1], {(size_t)weights_size[1]}, dir_path + "/shared.ape.bin", model_file_type);
     }
-    else {
+    else if (position_embedding_type == PositionEmbeddingType::relative) {
         loadWeightFromBin<T>(weights_ptr[1],
                              {(size_t)weights_size[1]},
                              dir_path + "/decoder.block.0.layer.0.SelfAttention.relative_attention_bias.weight."

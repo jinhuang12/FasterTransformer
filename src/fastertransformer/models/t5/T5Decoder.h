@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "src/fastertransformer/kernels/add_residual_kernels.h"
+#include "src/fastertransformer/kernels/gen_relative_pos_bias.h"
 #include "src/fastertransformer/kernels/layernorm_kernels.h"
 #include "src/fastertransformer/layers/BaseLayer.h"
 #include "src/fastertransformer/layers/TensorParallelGeluFfnLayer.h"
@@ -69,6 +70,7 @@ private:
 
     std::shared_ptr<AbstractCustomComm> custom_all_reduce_comm_;
     int                                 enable_custom_all_reduce_;
+    PositionEmbeddingType               position_embedding_type_para_;
 
     bool isValidLayerParallelId(uint l);
     bool isFirstLayerParallelId(uint l);
@@ -118,6 +120,7 @@ public:
                  const std::vector<Tensor>*                   input_tensors,
                  const std::vector<T5DecoderLayerWeight<T>*>* decoder_layer_weights);
     void setStream(cudaStream_t stream) override;
+    void setPositionEmbeddingType(PositionEmbeddingType position_embedding_type);
 };
 
 }  // namespace fastertransformer

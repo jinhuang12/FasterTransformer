@@ -100,7 +100,7 @@ void T5EncoderWeight<T>::initialize()
 
     FT_LOG_DEBUG("T5EncoderWeight " + std::string(__func__) + " start");
     weights_size[0] = d_model_;
-    if (position_embedding_type == PositionEmbeddingType::absolute) {
+    if (position_embedding_type == PositionEmbeddingType::absolute || position_embedding_type == PositionEmbeddingType::linear) {
         weights_size[1] = num_bucket_or_max_seq_len_ * d_model_;
     }
     else {
@@ -315,7 +315,7 @@ void T5EncoderWeight<T>::loadModel(std::string dir_path)
     if (position_embedding_type == PositionEmbeddingType::absolute) {
         loadWeightFromBin<T>(weights_ptr[1], {(size_t)weights_size[1]}, dir_path + "/shared.ape.bin", model_file_type);
     }
-    else {
+    else if (position_embedding_type == PositionEmbeddingType::relative) {
         loadWeightFromBin<T>(weights_ptr[1],
                              {(size_t)weights_size[1]},
                              dir_path + "/encoder.block.0.layer.0.SelfAttention.relative_attention_bias.weight."

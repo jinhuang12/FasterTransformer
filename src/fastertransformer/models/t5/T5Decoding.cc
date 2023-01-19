@@ -17,6 +17,7 @@
 #include "src/fastertransformer/models/t5/T5Decoding.h"
 #include "src/fastertransformer/kernels/beam_search_topk_kernels.h"
 #include "src/fastertransformer/kernels/bert_preprocess_kernels.h"
+#include "src/fastertransformer/kernels/gen_relative_pos_bias.h"
 #include "src/fastertransformer/kernels/gpt_kernels.h"
 #include "src/fastertransformer/layers/beam_search_layers/BaseBeamSearchLayer.h"
 
@@ -90,7 +91,7 @@ void T5Decoding<T>::allocateBuffer(
     relative_attention_bias_ = (T*)(allocator_->reMalloc(
         relative_attention_bias_, sizeof(T) * head_num_ * (max_seq_len + 1) * (max_seq_len + 1), false));
     linear_bias_slopes_ = (T*)(allocator_->reMalloc(
-    linear_bias_slopes_, sizeof(T) * head_num_ * (max_seq_len + 1) * (max_seq_len + 1), false));
+    linear_bias_slopes_, sizeof(T) * head_num_, false));
 
     decoder_input_buf_  = (T*)(allocator_->reMalloc(decoder_input_buf_, sizeof(T) * batchxbeam * d_model_, false));
     decoder_output_buf_ = (T*)(allocator_->reMalloc(decoder_output_buf_, sizeof(T) * batchxbeam * d_model_, false));
@@ -581,7 +582,7 @@ void T5Decoding<T>::forward(TensorMap*                 output_tensors,
                 Tensor{MEMORY_GPU, TYPE_INT32, {local_batch_size * beam_width}, sequence_lengths + id_offset},
                 Tensor{MEMORY_GPU,
                        data_type,
-                       {1, head_num_, max_seq_len + 1, max_seq_len + 1},
+                       decoding_weights->position_embedding_type == PositionEmbeddingType::linear ? std::vector<size_t>{head_num_} : std::vector<size_t>{1, head_num_, max_seq_len + 1, max_seq_len + 1},
                        decoding_weights->position_embedding_type == PositionEmbeddingType::linear ? linear_bias_slopes_ : decoding_weights->position_embedding_type == PositionEmbeddingType::relative ?
                            relative_attention_bias_ :
                            nullptr},
@@ -614,6 +615,7 @@ void T5Decoding<T>::forward(TensorMap*                 output_tensors,
                      batch_size * beam_width * head_num_ / tensor_para_.world_size_ * max_seq_len * mem_max_seq_len}});
             }
 
+            decoder_->setPositionEmbeddingType(decoding_weights->position_embedding_type);
             decoder_->forward(
                 &decoder_output_tensors, &decoder_input_tensors, &decoding_weights->decoder_layer_weights);
 

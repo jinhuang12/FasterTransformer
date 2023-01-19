@@ -1339,7 +1339,7 @@ __global__ void masked_multihead_attention_kernel(Multihead_attention_params<T, 
                 int   max_context_length = params.max_prefix_prompt_length + params.max_input_length;
                 float dist               = (ti < max_context_length ? ti + padd_len : ti) - tlength;
 
-                qk += mul<float, T, float>(params.linear_bias_slopes[hi], dist);
+                qk += mul<float, T, float>(params.linear_bias_slopes[hi], -std::abs(dist));
             }
             qk_max                   = is_mask ? qk_max : fmaxf(qk_max, qk);
             qk_smem[ti - first_step] = qk;

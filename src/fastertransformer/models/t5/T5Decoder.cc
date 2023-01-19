@@ -241,7 +241,8 @@ T5Decoder<T>::T5Decoder(size_t                              max_batch_size,
     activation_type_(activation_type),
     q_scaling_(q_scaling),
     custom_all_reduce_comm_(custom_all_reduce_comm),
-    enable_custom_all_reduce_(enable_custom_all_reduce)
+    enable_custom_all_reduce_(enable_custom_all_reduce),
+    position_embedding_type_para_
 {
     initialize();
 }
@@ -315,6 +316,12 @@ int T5Decoder<T>::getFirstLayerParallelId()
 {
     int local_num_layer = (int)(ceil(num_layer_ * 1.0f / pipeline_para_.world_size_));
     return local_num_layer * pipeline_para_.rank_;
+}
+
+template<typename T>
+void T5Decoder<T>::setPositionEmbeddingType(const PositionEmbeddingType position_embedding_type)
+{
+    position_embedding_type_para_ = position_embedding_type;
 }
 
 template<typename T>
@@ -437,7 +444,11 @@ void T5Decoder<T>::forward(std::vector<Tensor>*                         output_t
             {"sequence_lengths", input_tensors->at(5)},
             {"step", input_tensors->at(4)},
         };
-        self_attention_input_tensors.insertIfValid("relative_attention_bias", input_tensors->at(6));
+        if (position_embedding_type_para_ == PositionEmbeddingType::relative) {
+            self_attention_input_tensors.insertIfValid("relative_attention_bias", input_tensors->at(6));
+        } else if (position_embedding_type_para_ == PositionEmbeddingType::linear) {
+            self_attention_input_tensors.insertIfValid("linear_bias_slopes", input_tensors->at(6));
+        }
         self_attention_input_tensors.insertIfValid("cache_indirection", input_tensors->at(8));
         if (has_ia3) {
             self_attention_input_tensors.insert("ia3_tasks", input_tensors->at(9));

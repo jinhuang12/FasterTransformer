@@ -116,7 +116,7 @@ def translate(args_dict):
     t5_with_bias = False
     use_gated_activation = False
     t5_with_moe = False
-    position_embedding_type = 0
+    position_embedding_type = 2
     weight_data_type = np.float32
     ## only huggingface model path supported
     model_path = args_dict['model_path'] if args_dict['model_path'] != None else args_dict['model']

@@ -294,7 +294,7 @@ __global__ void softmax_kernel(T*          attn_score,
                 // We don't handle the upper diagonal (ki > qi) separately, whose values
                 // are negligible due to the negative infinity mask. And it matches with
                 // the HF's implementation.
-                qk_bias += static_cast<float>(linear_bias_slope * (ki - qi));
+                qk_bias += static_cast<float>(linear_bias_slope * -std::abs(ki - qi));
             }
 
             int   mask_offset = (bi * q_length + qi) * k_length + ki;

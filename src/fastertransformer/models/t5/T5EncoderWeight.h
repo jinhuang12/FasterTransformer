@@ -39,7 +39,7 @@ struct T5EncoderWeight {
                     const size_t                               pipeline_para_rank,
                     const bool                                 t5_with_bias_para         = false,
                     const bool                                 use_gated_activation_para = false,
-                    const PositionEmbeddingType                pe_type              = PositionEmbeddingType::relative,
+                    const PositionEmbeddingType                pe_type              = PositionEmbeddingType::linear,
                     PromptLearningType                         prompt_learning_type = PromptLearningType::no_prompt,
                     std::map<std::string, std::pair<int, int>> prompt_learning_pair = {},
                     const size_t                               ia3_num_tasks        = 0);
@@ -53,7 +53,7 @@ struct T5EncoderWeight {
     const T*                              embedding_table                         = nullptr;
     bool                                  t5_with_bias                            = false;
     bool                                  use_gated_activation                    = false;
-    PositionEmbeddingType                 position_embedding_type                 = PositionEmbeddingType::relative;
+    PositionEmbeddingType                 position_embedding_type                 = PositionEmbeddingType::linear;
     std::vector<std::pair<const T*, int>> prompt_learning_table                   = {};
 
     void loadModel(std::string dir_path);

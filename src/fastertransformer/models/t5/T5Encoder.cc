@@ -244,7 +244,7 @@ void T5Encoder<T>::allocateBuffer()
         relative_attention_bias_ = (T*)allocator_->reMalloc(
             relative_attention_bias_, sizeof(T) * head_num_ * max_seq_len_ * max_seq_len_, false);
         linear_bias_slopes_ = (T*)(allocator_->reMalloc(
-            linear_bias_slopes_, sizeof(T) * head_num_ * (max_seq_len_ + 1) * (max_seq_len_ + 1), false));
+            linear_bias_slopes_, sizeof(T) * head_num_, false));
 
         t5_encoder_emb_buf_ =
             (T*)allocator_->reMalloc(t5_encoder_emb_buf_, sizeof(T) * max_batch_size_ * max_seq_len_ * d_model_, false);
@@ -291,7 +291,7 @@ void T5Encoder<T>::allocateBuffer(size_t batch_size, size_t seq_len)
     relative_attention_bias_ =
         (T*)allocator_->reMalloc(relative_attention_bias_, sizeof(T) * head_num_ * seq_len * seq_len, false);
     linear_bias_slopes_ = (T*)(allocator_->reMalloc(
-        linear_bias_slopes_, sizeof(T) * head_num_ * (seq_len + 1) * (seq_len + 1), false));
+        linear_bias_slopes_, sizeof(T) * head_num_, false));
 
     t5_encoder_emb_buf_ =
         (T*)allocator_->reMalloc(t5_encoder_emb_buf_, sizeof(T) * batch_size * seq_len * d_model_, false);
@@ -789,14 +789,6 @@ void T5Encoder<T>::forward(TensorMap*                output_tensors,
                            t5_encoder_weights->position_embedding_type == PositionEmbeddingType::relative ?
                                relative_attention_bias_ :
                                nullptr});
-                /*attn_input_tensors.insertIfValid(
-                    "linear_bias_slopes",
-                    Tensor{MEMORY_GPU,
-                           data_type,
-                           std::vector<size_t>{1, head_num_, request_seq_len, request_seq_len},
-                           t5_encoder_weights->position_embedding_type == PositionEmbeddingType::linear ?
-                               linear_bias_slopes_ :
-                               nullptr});*/
                 if (input_tensors->isExist("linear_bias_slopes")) {
                     attn_input_tensors.insert("linear_bias_slopes", input_tensors->at("linear_bias_slopes"));
                 }

@@ -19,6 +19,7 @@
 #include "src/fastertransformer/kernels/gen_relative_pos_bias.h"
 #include "src/fastertransformer/kernels/decoding_kernels.h"
 #include "src/fastertransformer/utils/Tensor.h"
+#include "src/fastertransformer/utils/string_utils.h"
 
 namespace fastertransformer {
 
@@ -780,7 +781,13 @@ void T5Encoder<T>::forward(TensorMap*                output_tensors,
                      Tensor{MEMORY_GPU,
                             data_type,
                             std::vector<size_t>{local_batch_size, 1, request_seq_len, request_seq_len},
-                            attention_mask_}}};
+                            attention_mask_}},
+                    {"linear_bias_slopes",
+                      Tensor{MEMORY_GPU,
+                            data_type,
+                            std::vector<size_t>{head_num_},
+                            linear_bias_slopes_}}
+                };
 
                 attn_input_tensors.insertIfValid(
                     "relative_attention_bias",
@@ -790,9 +797,6 @@ void T5Encoder<T>::forward(TensorMap*                output_tensors,
                            t5_encoder_weights->position_embedding_type == PositionEmbeddingType::relative ?
                                relative_attention_bias_ :
                                nullptr});
-                if (input_tensors->isExist("linear_bias_slopes")) {
-                    attn_input_tensors.insert("linear_bias_slopes", input_tensors->at("linear_bias_slopes"));
-                }
                 attn_input_tensors.insertIfValid("padding_offset", *padding_offset_tensor_ptr);
 
                 if (has_ia3_tasks) {

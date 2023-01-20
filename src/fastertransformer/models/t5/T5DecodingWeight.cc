@@ -88,10 +88,10 @@ void T5DecodingWeight<T>::initialize()
 {
     FT_LOG_DEBUG("T5DecodingWeight " + std::string(__func__) + " start");
     weights_size[0] = d_model_ * vocab_size_;
-    if (position_embedding_type == PositionEmbeddingType::absolute || position_embedding_type == PositionEmbeddingType::linear) {
+    if (position_embedding_type == PositionEmbeddingType::absolute) {
         weights_size[1] = num_bucket_or_max_seq_len_ * d_model_;
     }
-    else {
+    else if (position_embedding_type == PositionEmbeddingType::relative) {
         weights_size[1] = (head_num_ / tensor_para_size_) * num_bucket_or_max_seq_len_;
     }
     weights_size[2] = d_model_;
@@ -146,7 +146,8 @@ T5DecodingWeight<T>::T5DecodingWeight(const T5DecodingWeight& other):
     initialize();
     mallocWeights();
     for (int i = 0; i < real_weights_num_; i++) {
-        cudaD2Dcpy(weights_ptr[i], other.weights_ptr[i], weights_size[i]);
+        if (weights_size[i] > 0)
+            cudaD2Dcpy(weights_ptr[i], other.weights_ptr[i], weights_size[i]);
     }
     setWeightPtr();
 
@@ -183,7 +184,8 @@ T5DecodingWeight<T>& T5DecodingWeight<T>::operator=(const T5DecodingWeight& othe
     initialize();
     mallocWeights();
     for (int i = 0; i < real_weights_num_; i++) {
-        cudaD2Dcpy(weights_ptr[i], other.weights_ptr[i], weights_size[i]);
+        if (weights_size[i] > 0)
+            cudaD2Dcpy(weights_ptr[i], other.weights_ptr[i], weights_size[i]);
     }
     setWeightPtr();
 
@@ -201,7 +203,8 @@ void T5DecodingWeight<T>::mallocWeights()
 {
     FT_LOG_DEBUG("T5DecodingWeight " + std::string(__func__) + " start");
     for (int i = 0; i < real_weights_num_; i++) {
-        deviceMalloc(&weights_ptr[i], weights_size[i]);
+        if (weights_size[i] > 0)
+            deviceMalloc(&weights_ptr[i], weights_size[i]);
     }
     is_maintain_buffer = true;
     FT_LOG_DEBUG("T5DecodingWeight " + std::string(__func__) + " end");

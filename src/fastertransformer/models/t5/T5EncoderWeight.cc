@@ -100,10 +100,10 @@ void T5EncoderWeight<T>::initialize()
 
     FT_LOG_DEBUG("T5EncoderWeight " + std::string(__func__) + " start");
     weights_size[0] = d_model_;
-    if (position_embedding_type == PositionEmbeddingType::absolute || position_embedding_type == PositionEmbeddingType::linear) {
+    if (position_embedding_type == PositionEmbeddingType::absolute) {
         weights_size[1] = num_bucket_or_max_seq_len_ * d_model_;
     }
-    else {
+    else if (position_embedding_type == PositionEmbeddingType::relative) {
         weights_size[1] = (head_num_ / tensor_para_size_) * num_bucket_or_max_seq_len_;
     }
     weights_size[2] = d_model_ * vocab_size_;
@@ -180,7 +180,8 @@ T5EncoderWeight<T>::T5EncoderWeight(const T5EncoderWeight& other):
     initialize();
     mallocWeights();
     for (int i = 0; i < real_weights_num_; i++) {
-        cudaD2Dcpy(weights_ptr[i], other.weights_ptr[i], weights_size[i]);
+        if (weights_size[i] > 0)
+            cudaD2Dcpy(weights_ptr[i], other.weights_ptr[i], weights_size[i]);
     }
     // prompt learning table: malloc weights and set weight ptr
     if (malloc_load_prompt_weights_) {
@@ -190,7 +191,8 @@ T5EncoderWeight<T>::T5EncoderWeight(const T5EncoderWeight& other):
             size_t      prompt_id    = weights_num_ + (size_t)task_name_id;
 
             // cuda device to device memcpy prompt table weights buffer memory
-            cudaD2Dcpy(weights_ptr[prompt_id], other.weights_ptr[prompt_id], weights_size[prompt_id]);
+            if (weights_size[prompt_id] > 0)
+                cudaD2Dcpy(weights_ptr[prompt_id], other.weights_ptr[prompt_id], weights_size[prompt_id]);
         }
     }
 
@@ -230,7 +232,8 @@ T5EncoderWeight<T>& T5EncoderWeight<T>::operator=(const T5EncoderWeight& other)
     initialize();
     mallocWeights();
     for (int i = 0; i < real_weights_num_; i++) {
-        cudaD2Dcpy(weights_ptr[i], other.weights_ptr[i], weights_size[i]);
+        if (weights_size[i] > 0)
+            cudaD2Dcpy(weights_ptr[i], other.weights_ptr[i], weights_size[i]);
     }
     // prompt learning table: malloc weights and set weight ptr
     if (malloc_load_prompt_weights_) {
@@ -240,7 +243,8 @@ T5EncoderWeight<T>& T5EncoderWeight<T>::operator=(const T5EncoderWeight& other)
             size_t      prompt_id    = weights_num_ + (size_t)task_name_id;
 
             // cuda device to device memcpy prompt table weights buffer memory
-            cudaD2Dcpy(weights_ptr[prompt_id], other.weights_ptr[prompt_id], weights_size[prompt_id]);
+            if (weights_size[prompt_id] > 0)
+                cudaD2Dcpy(weights_ptr[prompt_id], other.weights_ptr[prompt_id], weights_size[prompt_id]);
         }
     }
 
@@ -287,7 +291,8 @@ void T5EncoderWeight<T>::mallocWeights()
 {
     FT_LOG_DEBUG("T5EncoderWeight " + std::string(__func__) + " start");
     for (int i = 0; i < real_weights_num_; i++) {
-        deviceMalloc(&weights_ptr[i], weights_size[i]);
+        if (weights_size[i] > 0)
+            deviceMalloc(&weights_ptr[i], weights_size[i]);
     }
     // prompt learning tables: malloc weights
     if (malloc_load_prompt_weights_) {
@@ -296,7 +301,8 @@ void T5EncoderWeight<T>::mallocWeights()
             size_t task_weight_id = weights_num_ + (size_t)task_name_id;
 
             // malloc weights
-            deviceMalloc(&weights_ptr[task_weight_id], weights_size[task_weight_id]);
+            if (weights_size[task_weight_id] > 0)
+                deviceMalloc(&weights_ptr[task_weight_id], weights_size[task_weight_id]);
         }
     }
     is_maintain_buffer = true;

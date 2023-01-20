@@ -202,10 +202,10 @@ class FTT5DecodingWeight(object):
                 [self.config.d_model, self.config.vocab_size])).contiguous().cuda()
             self.w.append(t)
             t = None
-            if (self.position_embedding_type == 0):
-                t = torch.from_numpy(np.fromfile(f"{ckpt_path}/decoder.block.0.layer.0.SelfAttention.relative_attention_bias.weight.{self.tensor_para_rank}.bin", dtype=np_weight_dtype)).contiguous().cuda()
-            else:
-                t = torch.from_numpy(np.fromfile(f"{ckpt_path}/shared.ape.bin", dtype=np_weight_dtype)).contiguous().cuda()
+            #if (self.position_embedding_type == 0):
+            t = torch.from_numpy(np.fromfile(f"{ckpt_path}/decoder.block.0.layer.0.SelfAttention.relative_attention_bias.weight.{self.tensor_para_rank}.bin", dtype=np_weight_dtype)).contiguous().cuda()
+            #else:
+            #    t = torch.from_numpy(np.fromfile(f"{ckpt_path}/shared.ape.bin", dtype=np_weight_dtype)).contiguous().cuda()
             self.w.append(t)
             
             # add 14 additional bias if it is t5 megatron structure

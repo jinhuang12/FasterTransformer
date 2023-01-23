@@ -174,6 +174,7 @@ T5Encoder<T>::T5Encoder(size_t                              max_batch_size,
     layernorm_type_(layernorm_type),
     tensor_para_(tensor_para),
     pipeline_para_(pipeline_para),
+    local_head_num_(head_num/tensor_para.world_size_),
     prompt_learning_start_id_(prompt_learning_start_id),
     prompt_learning_type_(prompt_learning_type),
     custom_all_reduce_comm_(custom_all_reduce_comm),
@@ -206,6 +207,7 @@ T5Encoder<T>::T5Encoder(T5Encoder<T> const& t5_encoder):
     layernorm_type_(t5_encoder.layernorm_type_),
     tensor_para_(t5_encoder.tensor_para_),
     pipeline_para_(t5_encoder.pipeline_para_),
+    local_head_num_(t5_encoder.local_head_num_),
     prompt_learning_start_id_(t5_encoder.prompt_learning_start_id_),
     prompt_learning_type_(t5_encoder.prompt_learning_type_),
     custom_all_reduce_comm_(t5_encoder.custom_all_reduce_comm_),
@@ -785,8 +787,8 @@ void T5Encoder<T>::forward(TensorMap*                output_tensors,
                     {"linear_bias_slopes",
                       Tensor{MEMORY_GPU,
                             data_type,
-                            std::vector<size_t>{head_num_},
-                            linear_bias_slopes_}}
+                            std::vector<size_t>{local_head_num_},
+                            linear_bias_slopes_ + local_head_num_ * tensor_para_.rank_}}
                 };
 
                 attn_input_tensors.insertIfValid(

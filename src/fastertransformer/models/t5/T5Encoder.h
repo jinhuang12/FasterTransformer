@@ -77,6 +77,7 @@ private:
     const ActivationType activation_type_;
     const LayerNormType  layernorm_type_;
 
+    size_t    local_head_num_;
     const NcclParam tensor_para_;
     const NcclParam pipeline_para_;
 

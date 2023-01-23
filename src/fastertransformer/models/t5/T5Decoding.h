@@ -85,6 +85,7 @@ private:
 
     void initialize();
 
+    size_t    local_head_num_;
     NcclParam tensor_para_;
     NcclParam pipeline_para_;
 
